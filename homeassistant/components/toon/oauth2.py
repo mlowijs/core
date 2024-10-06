@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
@@ -12,7 +13,7 @@ from . import config_flow
 
 
 def register_oauth2_implementations(
-    hass: HomeAssistant, client_id: str, client_secret: str
+    hass: HomeAssistant, client_id: str, client_secret: str, access_token: str
 ) -> None:
     """Register Toon OAuth2 implementations."""
     config_flow.ToonFlowHandler.async_register_implementation(
@@ -21,6 +22,7 @@ def register_oauth2_implementations(
             hass,
             client_id=client_id,
             client_secret=client_secret,
+            access_token=access_token, # Only supported for Mijn Eneco users
             name="Eneco Toon",
             tenant_id="eneco",
             issuer="identity.toon.eu",
@@ -57,6 +59,7 @@ class ToonLocalOAuth2Implementation(config_entry_oauth2_flow.LocalOAuth2Implemen
         hass: HomeAssistant,
         client_id: str,
         client_secret: str,
+        access_token: str,
         name: str,
         tenant_id: str,
         issuer: str | None = None,
@@ -65,6 +68,7 @@ class ToonLocalOAuth2Implementation(config_entry_oauth2_flow.LocalOAuth2Implemen
         self._name = name
         self.tenant_id = tenant_id
         self.issuer = issuer
+        self.access_token = access_token
 
         super().__init__(
             hass=hass,
@@ -118,6 +122,12 @@ class ToonLocalOAuth2Implementation(config_entry_oauth2_flow.LocalOAuth2Implemen
 
     async def _token_request(self, data: dict) -> dict:
         """Make a token request."""
+        if self.access_token:
+            return {
+                "expires_in": time.time() + 86400,
+                "access_token": self.access_token
+            }
+
         session = async_get_clientsession(self.hass)
         headers = {}
 

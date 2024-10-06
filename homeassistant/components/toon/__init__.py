@@ -6,6 +6,7 @@ from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     CONF_CLIENT_ID,
     CONF_CLIENT_SECRET,
+    CONF_ACCESS_TOKEN,
     CONF_SCAN_INTERVAL,
     EVENT_HOMEASSISTANT_STARTED,
     Platform,
@@ -36,8 +37,9 @@ CONFIG_SCHEMA = vol.Schema(
             cv.deprecated(CONF_SCAN_INTERVAL),
             vol.Schema(
                 {
-                    vol.Required(CONF_CLIENT_ID): cv.string,
-                    vol.Required(CONF_CLIENT_SECRET): cv.string,
+                    vol.Optional(CONF_CLIENT_ID): cv.string,
+                    vol.Optional(CONF_CLIENT_SECRET): cv.string,
+                    vol.Optional(CONF_ACCESS_TOKEN): cv.string,
                     vol.Optional(
                         CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
                     ): cv.positive_time_period,
@@ -55,7 +57,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         return True
 
     register_oauth2_implementations(
-        hass, config[DOMAIN][CONF_CLIENT_ID], config[DOMAIN][CONF_CLIENT_SECRET]
+        hass, config[DOMAIN][CONF_CLIENT_ID], config[DOMAIN][CONF_CLIENT_SECRET], config[DOMAIN][CONF_ACCESS_TOKEN]
     )
 
     hass.async_create_task(
